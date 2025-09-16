@@ -1,0 +1,45 @@
+name: Trivy Security Scan
+
+on:
+  workflow_call:   # allows other workflows to trigger it
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  trivy-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy on dependencies
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          scan-type: fs
+          ignore-unfixed: true
+          exit-code: '1'
+          format: 'table'
+          output: 'trivy-dependency-report.txt'
+
+      - name: Build Docker image
+        run: docker build -t myapp:latest .
+
+      - name: Run Trivy on Docker image
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: 'myapp:latest'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          exit-code: '1'
+          format: 'table'
+          output: 'trivy-container-report.txt'
+
+      - name: Upload Trivy Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            trivy-dependency-report.txt
+            trivy-container-report.txt
