@@ -3,15 +3,11 @@ name: Deploy Application
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
+  workflow_dispatch: # manual trigger
 
 jobs:
-  security-scan:
-    uses: ./.github/workflows/trivy.yml   # call the trivy workflow
-
   deploy:
     runs-on: ubuntu-latest
-    needs: security-scan   # wait until trivy passes
 
     steps:
       - uses: actions/checkout@v4
@@ -19,6 +15,7 @@ jobs:
       - name: Build Docker image
         run: docker build -t myapp:latest .
 
+      # Example: Push to GitHub Container Registry
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:

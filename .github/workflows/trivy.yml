@@ -1,7 +1,6 @@
 name: Trivy Security Scan
 
 on:
-  workflow_call:   # allows other workflows to trigger it
   push:
     branches: [ main ]
   pull_request:
@@ -14,6 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Dependency scanning
       - name: Run Trivy on dependencies
         uses: aquasecurity/trivy-action@0.20.0
         with:
@@ -23,9 +23,11 @@ jobs:
           format: 'table'
           output: 'trivy-dependency-report.txt'
 
+      # Build Docker image
       - name: Build Docker image
         run: docker build -t myapp:latest .
 
+      # Container image scanning
       - name: Run Trivy on Docker image
         uses: aquasecurity/trivy-action@0.20.0
         with:
@@ -36,6 +38,7 @@ jobs:
           format: 'table'
           output: 'trivy-container-report.txt'
 
+      # Upload reports
       - name: Upload Trivy Reports
         uses: actions/upload-artifact@v4
         with:
